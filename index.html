@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎧 Offline Lyrics Player</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">🎧 Offline Lyrics Player</h1>
+            <p class="subtitle">Load your music and lyrics for synchronized playback</p>
+        </header>
+
+        <!-- File Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-container">
+                <div class="file-upload-area">
+                    <div class="upload-box" id="audioUploadBox">
+                        <div class="upload-icon">🎵</div>
+                        <h3>Audio File</h3>
+                        <p>MP3, FLAC, or WAV</p>
+                        <input type="file" id="audioFile" accept=".mp3,.flac,.wav" hidden>
+                        <button class="upload-btn" onclick="document.getElementById('audioFile').click()">
+                            Choose Audio File
+                        </button>
+                    </div>
+                    
+                    <div class="upload-box" id="lyricsUploadBox">
+                        <div class="upload-icon">📝</div>
+                        <h3>Lyrics File</h3>
+                        <p>.lrc format</p>
+                        <input type="file" id="lyricsFile" accept=".lrc" hidden>
+                        <button class="upload-btn" onclick="document.getElementById('lyricsFile').click()">
+                            Choose Lyrics File
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="file-info" id="fileInfo" style="display: none;">
+                    <div class="file-details">
+                        <div class="file-item">
+                            <span class="file-label">Audio:</span>
+                            <span class="file-name" id="audioFileName">-</span>
+                        </div>
+                        <div class="file-item">
+                            <span class="file-label">Lyrics:</span>
+                            <span class="file-name" id="lyricsFileName">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Player Section -->
+        <section class="player-section" id="playerSection" style="display: none;">
+            <!-- Audio Player -->
+            <div class="audio-player">
+                <audio id="audioPlayer" controls>
+                    Your browser does not support the audio element.
+                </audio>
+                
+                <div class="player-info">
+                    <div class="track-info">
+                        <h3 id="trackTitle">Unknown Track</h3>
+                        <p id="trackDuration">00:00 / 00:00</p>
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <div class="time-display">
+                            <span id="currentTime">00:00</span>
+                            <span id="totalTime">00:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lyrics Display -->
+            <div class="lyrics-container">
+                <div class="lyrics-header">
+                    <h3>Lyrics</h3>
+                    <div class="lyrics-controls">
+                        <button class="control-btn" id="toggleAutoScroll" title="Toggle auto-scroll">
+                            📜
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lyrics-content" id="lyricsContent">
+                    <div class="lyrics-placeholder">
+                        <p>Load a .lrc file to see synchronized lyrics</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Error Messages -->
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 

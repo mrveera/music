@@ -1,0 +1,33 @@
+{
+  "name": "offline-lyrics-player",
+  "version": "1.0.0",
+  "description": "A modern, browser-based music player that synchronizes local audio files with timestamped lyrics (.lrc files)",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -c-1",
+    "dev": "npx http-server -p 8000 -c-1 -o"
+  },
+  "keywords": [
+    "music",
+    "player",
+    "lyrics",
+    "synchronization",
+    "offline",
+    "karaoke",
+    "lrc",
+    "audio"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/offline-lyrics-player.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/offline-lyrics-player/issues"
+  },
+  "homepage": "https://github.com/yourusername/offline-lyrics-player#readme"
+} 
