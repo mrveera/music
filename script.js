@@ -7,6 +7,12 @@ class LyricsPlayer {
         this.autoScroll = true;
         this.audioPlayer = null;
         
+        // Editor properties
+        this.editorAudioFile = null;
+        this.editorAudio = null;
+        this.annotatedLyrics = [];
+        this.currentLyricIndex = 0;
+        
         this.initializeElements();
         this.bindEvents();
         this.loadFromStorage();
@@ -36,6 +42,30 @@ class LyricsPlayer {
         // Lyrics elements
         this.lyricsContent = document.getElementById('lyricsContent');
         this.toggleAutoScrollBtn = document.getElementById('toggleAutoScroll');
+        this.scrollToTopBtn = document.getElementById('scrollToTop');
+        
+        // Tab navigation
+        this.tabButtons = document.querySelectorAll('.tab-btn');
+        this.tabContents = document.querySelectorAll('.tab-content');
+        
+        // Editor elements
+        this.editorAudioFileInput = document.getElementById('editorAudioFile');
+        this.editorAudio = document.getElementById('editorAudio');
+        this.editorAudioFileName = document.getElementById('editorAudioFileName');
+        this.editorAudioPlayer = document.getElementById('editorAudioPlayer');
+        this.lyricsTextarea = document.getElementById('lyricsTextarea');
+        this.annotatedLyricsContainer = document.getElementById('annotatedLyricsContainer');
+        this.editorCurrentTime = document.getElementById('editorCurrentTime');
+        
+        // Editor controls
+        this.markTimeBtn = document.getElementById('markTimeBtn');
+        this.playFromMarkBtn = document.getElementById('playFromMarkBtn');
+        this.clearAllBtn = document.getElementById('clearAllBtn');
+        
+        // Export elements
+        this.songTitleInput = document.getElementById('songTitle');
+        this.artistNameInput = document.getElementById('artistName');
+        this.exportLrcBtn = document.getElementById('exportLrcBtn');
     }
 
     bindEvents() {
@@ -50,9 +80,43 @@ class LyricsPlayer {
         
         // Lyrics control events
         this.toggleAutoScrollBtn.addEventListener('click', () => this.toggleAutoScroll());
+        this.scrollToTopBtn.addEventListener('click', () => this.scrollToTop());
         
         // Drag and drop events
         this.setupDragAndDrop();
+        
+        // Tab navigation events
+        this.tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+        });
+        
+        // Editor events
+        this.editorAudioFileInput.addEventListener('change', (e) => this.handleEditorAudioFileSelect(e));
+        this.editorAudio.addEventListener('timeupdate', () => this.updateEditorTime());
+        this.editorAudio.addEventListener('loadedmetadata', () => this.updateEditorAudioInfo());
+        
+        // Editor control events
+        this.markTimeBtn.addEventListener('click', () => this.markCurrentTime());
+        this.playFromMarkBtn.addEventListener('click', () => this.playFromMark());
+        this.clearAllBtn.addEventListener('click', () => this.clearAllAnnotations());
+        
+        // Export events
+        this.exportLrcBtn.addEventListener('click', () => this.exportLrcFile());
+        
+        // Lyrics textarea events
+        this.lyricsTextarea.addEventListener('input', () => this.processLyricsInput());
+    }
+
+    switchTab(tabName) {
+        // Update tab buttons
+        this.tabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+        
+        // Update tab content
+        this.tabContents.forEach(content => {
+            content.classList.toggle('active', content.id === tabName + 'Tab');
+        });
     }
 
     setupDragAndDrop() {
@@ -246,7 +310,7 @@ class LyricsPlayer {
         const lines = this.lyricsContent.querySelectorAll('.lyrics-line');
         
         lines.forEach((line, index) => {
-            line.classList.remove('active', 'past');
+            line.classList.remove('active', 'past', 'future');
             
             if (index === this.currentLineIndex) {
                 line.classList.add('active');
@@ -255,6 +319,8 @@ class LyricsPlayer {
                 }
             } else if (index < this.currentLineIndex) {
                 line.classList.add('past');
+            } else {
+                line.classList.add('future');
             }
         });
     }
@@ -265,14 +331,53 @@ class LyricsPlayer {
         const lineTop = lineElement.offsetTop;
         const lineHeight = lineElement.offsetHeight;
         
-        const scrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
-        container.scrollTop = scrollTop;
+        // Calculate the ideal scroll position to center the line
+        const idealScrollTop = lineTop - (containerHeight / 2) + (lineHeight / 2);
+        
+        // Get current scroll position
+        const currentScrollTop = container.scrollTop;
+        const currentScrollBottom = currentScrollTop + containerHeight;
+        
+        // Check if the line is already visible
+        const lineBottom = lineTop + lineHeight;
+        const isLineVisible = lineTop >= currentScrollTop && lineBottom <= currentScrollBottom;
+        
+        // Only scroll if the line is not visible or if it's at the edges
+        if (!isLineVisible || lineTop < currentScrollTop + 50 || lineBottom > currentScrollBottom - 50) {
+            // Smooth scroll to the ideal position
+            container.scrollTo({
+                top: idealScrollTop,
+                behavior: 'smooth'
+            });
+        }
     }
 
     toggleAutoScroll() {
         this.autoScroll = !this.autoScroll;
         this.toggleAutoScrollBtn.classList.toggle('active', this.autoScroll);
         this.toggleAutoScrollBtn.title = this.autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll';
+        
+        // Update button text for better clarity
+        if (this.autoScroll) {
+            this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll ON</span>';
+        } else {
+            this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll OFF</span>';
+        }
+        
+        // If auto-scroll is enabled and there's an active line, scroll to it
+        if (this.autoScroll && this.currentLineIndex >= 0) {
+            const activeLine = this.lyricsContent.querySelector('.lyrics-line.active');
+            if (activeLine) {
+                this.scrollToLine(activeLine);
+            }
+        }
+    }
+
+    scrollToTop() {
+        this.lyricsContent.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
     }
 
     handlePlaybackEnd() {
@@ -325,10 +430,218 @@ class LyricsPlayer {
                 this.autoScroll = session.autoScroll ?? true;
                 this.toggleAutoScrollBtn.classList.toggle('active', this.autoScroll);
                 this.toggleAutoScrollBtn.title = this.autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll';
+                
+                // Initialize button text
+                if (this.autoScroll) {
+                    this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll ON</span>';
+                } else {
+                    this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll OFF</span>';
+                }
             }
         } catch (error) {
             console.warn('Could not load from localStorage:', error);
         }
+    }
+
+    // Editor Methods
+    handleEditorAudioFileSelect(event) {
+        const file = event.target.files[0];
+        if (file) {
+            this.loadEditorAudioFile(file);
+        }
+    }
+
+    loadEditorAudioFile(file) {
+        if (!this.isAudioFile(file)) {
+            this.showError('Please select a valid audio file (MP3, FLAC, or WAV)');
+            return;
+        }
+
+        this.editorAudioFile = file;
+        this.editorAudioFileName.textContent = file.name;
+        
+        const url = URL.createObjectURL(file);
+        this.editorAudio.src = url;
+        this.editorAudioPlayer.style.display = 'block';
+    }
+
+    updateEditorTime() {
+        const currentTime = this.editorAudio.currentTime;
+        this.editorCurrentTime.textContent = this.formatTime(currentTime);
+    }
+
+    updateEditorAudioInfo() {
+        // Audio loaded, ready for annotation
+    }
+
+    processLyricsInput() {
+        const text = this.lyricsTextarea.value;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        // Reset annotated lyrics
+        this.annotatedLyrics = lines.map((line, index) => ({
+            index: index,
+            text: line.trim(),
+            time: null
+        }));
+        
+        this.currentLyricIndex = 0;
+        this.displayAnnotatedLyrics();
+    }
+
+    markCurrentTime() {
+        if (this.annotatedLyrics.length === 0) {
+            this.showError('Please enter lyrics first');
+            return;
+        }
+
+        if (this.currentLyricIndex >= this.annotatedLyrics.length) {
+            this.showError('All lyrics have been annotated');
+            return;
+        }
+
+        const currentTime = this.editorAudio.currentTime;
+        this.annotatedLyrics[this.currentLyricIndex].time = currentTime;
+        
+        this.currentLyricIndex++;
+        this.displayAnnotatedLyrics();
+        
+        // Auto-advance to next line if there are more
+        if (this.currentLyricIndex < this.annotatedLyrics.length) {
+            this.lyricsTextarea.focus();
+        }
+    }
+
+    playFromMark() {
+        if (this.currentLyricIndex > 0 && this.currentLyricIndex <= this.annotatedLyrics.length) {
+            const prevIndex = this.currentLyricIndex - 1;
+            const time = this.annotatedLyrics[prevIndex].time;
+            if (time !== null) {
+                this.editorAudio.currentTime = time;
+                this.editorAudio.play();
+            }
+        }
+    }
+
+    clearAllAnnotations() {
+        this.annotatedLyrics = [];
+        this.currentLyricIndex = 0;
+        this.lyricsTextarea.value = '';
+        this.displayAnnotatedLyrics();
+    }
+
+    displayAnnotatedLyrics() {
+        this.annotatedLyricsContainer.innerHTML = '';
+        
+        if (this.annotatedLyrics.length === 0) {
+            this.annotatedLyricsContainer.innerHTML = '<div class="lyrics-placeholder"><p>Start by entering lyrics and marking timestamps</p></div>';
+            return;
+        }
+        
+        this.annotatedLyrics.forEach((lyric, index) => {
+            const lineElement = document.createElement('div');
+            lineElement.className = 'annotated-line';
+            
+            const timeElement = document.createElement('div');
+            timeElement.className = 'line-time';
+            timeElement.textContent = lyric.time !== null ? this.formatTime(lyric.time) : '--:--';
+            
+            const textElement = document.createElement('div');
+            textElement.className = 'line-text';
+            textElement.textContent = lyric.text;
+            
+            const actionsElement = document.createElement('div');
+            actionsElement.className = 'line-actions';
+            
+            if (lyric.time !== null) {
+                const playBtn = document.createElement('button');
+                playBtn.className = 'line-action-btn';
+                playBtn.textContent = '▶️';
+                playBtn.title = 'Play from this line';
+                playBtn.onclick = () => {
+                    this.editorAudio.currentTime = lyric.time;
+                    this.editorAudio.play();
+                };
+                actionsElement.appendChild(playBtn);
+            }
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'line-action-btn delete';
+            deleteBtn.textContent = '🗑️';
+            deleteBtn.title = 'Delete this line';
+            deleteBtn.onclick = () => this.deleteAnnotatedLine(index);
+            actionsElement.appendChild(deleteBtn);
+            
+            lineElement.appendChild(timeElement);
+            lineElement.appendChild(textElement);
+            lineElement.appendChild(actionsElement);
+            
+            this.annotatedLyricsContainer.appendChild(lineElement);
+        });
+    }
+
+    deleteAnnotatedLine(index) {
+        this.annotatedLyrics.splice(index, 1);
+        
+        // Update indices
+        this.annotatedLyrics.forEach((lyric, i) => {
+            lyric.index = i;
+        });
+        
+        // Adjust current index
+        if (this.currentLyricIndex > index) {
+            this.currentLyricIndex--;
+        }
+        
+        this.displayAnnotatedLyrics();
+        this.updateLyricsTextarea();
+    }
+
+    updateLyricsTextarea() {
+        const text = this.annotatedLyrics.map(lyric => lyric.text).join('\n');
+        this.lyricsTextarea.value = text;
+    }
+
+    exportLrcFile() {
+        if (this.annotatedLyrics.length === 0) {
+            this.showError('No lyrics to export');
+            return;
+        }
+
+        const songTitle = this.songTitleInput.value.trim() || 'Unknown Song';
+        const artistName = this.artistNameInput.value.trim() || 'Unknown Artist';
+        
+        let lrcContent = '';
+        
+        // Add metadata
+        lrcContent += `[00:00.00]${songTitle}\n`;
+        lrcContent += `[00:03.45]${artistName}\n`;
+        lrcContent += `[00:07.20]\n`;
+        
+        // Add annotated lyrics
+        this.annotatedLyrics.forEach(lyric => {
+            if (lyric.time !== null) {
+                const minutes = Math.floor(lyric.time / 60);
+                const seconds = Math.floor(lyric.time % 60);
+                const centiseconds = Math.floor((lyric.time % 1) * 100);
+                
+                const timestamp = `[${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}]`;
+                lrcContent += `${timestamp}${lyric.text}\n`;
+            }
+        });
+        
+        // Create and download file
+        const blob = new Blob([lrcContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${songTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.lrc`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.showError('LRC file exported successfully!');
     }
 }
 
@@ -345,4 +658,6 @@ console.log('- Load .lrc lyrics files');
 console.log('- Synchronized lyrics display');
 console.log('- Auto-scroll with toggle');
 console.log('- Responsive design');
-console.log('- Drag and drop support'); 
+console.log('- Drag and drop support');
+console.log('- Lyrics editor with annotation');
+console.log('- LRC file generation'); 

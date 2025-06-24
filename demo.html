@@ -61,6 +61,50 @@
             overflow-x: auto;
             margin: 15px 0;
         }
+        
+        .mode-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .mode-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .mode-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ffffff;
+        }
+        
+        .mode-card .mode-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .workflow-steps {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .workflow-steps li {
+            padding: 8px 0;
+            border-left: 3px solid #4ecdc4;
+            padding-left: 15px;
+            margin: 5px 0;
+        }
+        
+        .workflow-steps li::before {
+            content: '→';
+            color: #4ecdc4;
+            font-weight: bold;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -94,6 +138,12 @@
                 </div>
                 
                 <div class="feature-card">
+                    <div class="feature-icon">✏️</div>
+                    <h3>Lyrics Editor</h3>
+                    <p>Create and annotate lyrics with timestamps to generate .lrc files. Perfect for creating your own synchronized lyrics.</p>
+                </div>
+                
+                <div class="feature-card">
                     <div class="feature-icon">📱</div>
                     <h3>Responsive Design</h3>
                     <p>Works perfectly on desktop, tablet, and mobile devices. Touch-friendly interface with smooth animations.</p>
@@ -104,11 +154,35 @@
                     <h3>Drag & Drop</h3>
                     <p>Simply drag your audio and lyrics files onto the upload areas for instant loading.</p>
                 </div>
+            </div>
+        </section>
+
+        <!-- Mode Comparison -->
+        <section class="demo-section">
+            <h2>🎮 Two Powerful Modes</h2>
+            <div class="mode-comparison">
+                <div class="mode-card">
+                    <div class="mode-icon">🎵</div>
+                    <h3>Player Mode</h3>
+                    <p>Load existing audio and .lrc files for synchronized playback.</p>
+                    <ul class="workflow-steps">
+                        <li>Load your audio file (MP3, FLAC, WAV)</li>
+                        <li>Load a .lrc lyrics file</li>
+                        <li>Play and enjoy synchronized lyrics</li>
+                        <li>Use auto-scroll and seek controls</li>
+                    </ul>
+                </div>
                 
-                <div class="feature-card">
-                    <div class="feature-icon">💾</div>
-                    <h3>Offline First</h3>
-                    <p>No internet connection required. All processing happens locally in your browser.</p>
+                <div class="mode-card">
+                    <div class="mode-icon">✏️</div>
+                    <h3>Editor Mode</h3>
+                    <p>Create new .lrc files from scratch with precise timing.</p>
+                    <ul class="workflow-steps">
+                        <li>Load an audio file (optional)</li>
+                        <li>Enter your lyrics line by line</li>
+                        <li>Mark timestamps while listening</li>
+                        <li>Export as .lrc file</li>
+                    </ul>
                 </div>
             </div>
         </section>
@@ -130,6 +204,48 @@
             <p><strong>Format:</strong> <code>[mm:ss.xx]</code> where mm=minutes, ss=seconds, xx=centiseconds</p>
         </section>
 
+        <!-- Editor Features -->
+        <section class="demo-section">
+            <h2>✏️ Editor Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Real-time Timing</h3>
+                    <p>Mark exact timestamps while listening to audio. Click "Mark Current Time" when each line should appear.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">👁️</div>
+                    <h3>Visual Feedback</h3>
+                    <p>See all annotated lines with their timestamps in a clear, organized display.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">▶️</div>
+                    <h3>Playback Testing</h3>
+                    <p>Test your annotations by playing from any marked line. Perfect for fine-tuning timing.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🗑️</div>
+                    <h3>Edit & Delete</h3>
+                    <p>Remove or modify any annotated line. Easy to correct mistakes and adjust timing.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⏭️</div>
+                    <h3>Auto-advance</h3>
+                    <p>Automatically moves to the next line after marking, streamlining the annotation process.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💾</div>
+                    <h3>Export Ready</h3>
+                    <p>Generate standard .lrc files ready for use in any compatible player or application.</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Sample Files -->
         <section class="demo-section">
             <h2>🎵 Sample Files</h2>
@@ -138,7 +254,7 @@
             <div class="feature-grid">
                 <div class="feature-card">
                     <h3>Sample LRC File</h3>
-                    <p>A complete .lrc file with 25+ timestamped lines for testing.</p>
+                    <p>A complete .lrc file with 25+ timestamped lines for testing the player mode.</p>
                     <a href="sample-song.lrc" download class="cta-button">Download sample-song.lrc</a>
                 </div>
                 
@@ -153,12 +269,23 @@
         <!-- How to Use -->
         <section class="demo-section">
             <h2>🚀 How to Use</h2>
-            <ol style="line-height: 2; padding-left: 20px;">
+            
+            <h3>Player Mode</h3>
+            <ol style="line-height: 2; padding-left: 20px; margin-bottom: 30px;">
                 <li><strong>Open the app:</strong> Open <code>index.html</code> in your browser</li>
                 <li><strong>Load audio:</strong> Click "Choose Audio File" or drag an MP3/FLAC/WAV file</li>
                 <li><strong>Load lyrics:</strong> Click "Choose Lyrics File" or drag a .lrc file</li>
                 <li><strong>Play:</strong> Use the audio controls to start playback</li>
                 <li><strong>Enjoy:</strong> Watch the lyrics sync with your music!</li>
+            </ol>
+            
+            <h3>Editor Mode</h3>
+            <ol style="line-height: 2; padding-left: 20px;">
+                <li><strong>Switch to Editor:</strong> Click the "Lyrics Editor" tab</li>
+                <li><strong>Load Audio (Optional):</strong> Load an audio file to help with timing</li>
+                <li><strong>Enter Lyrics:</strong> Type your lyrics in the text area (one line per verse)</li>
+                <li><strong>Mark Timestamps:</strong> Play audio and click "Mark Current Time" for each line</li>
+                <li><strong>Export:</strong> Add song info and click "Export .lrc File"</li>
             </ol>
         </section>
 
@@ -192,7 +319,7 @@
         <!-- Call to Action -->
         <section class="demo-section" style="text-align: center;">
             <h2>🎧 Ready to Try?</h2>
-            <p>Experience synchronized lyrics with your own music files!</p>
+            <p>Experience synchronized lyrics with your own music files or create new .lrc files!</p>
             <a href="index.html" class="cta-button">Launch App</a>
             <a href="README.md" class="cta-button">View Documentation</a>
         </section>

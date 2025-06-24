@@ -15,90 +15,192 @@
             <p class="subtitle">Load your music and lyrics for synchronized playback</p>
         </header>
 
-        <!-- File Upload Section -->
-        <section class="upload-section" id="uploadSection">
-            <div class="upload-container">
-                <div class="file-upload-area">
-                    <div class="upload-box" id="audioUploadBox">
-                        <div class="upload-icon">🎵</div>
-                        <h3>Audio File</h3>
-                        <p>MP3, FLAC, or WAV</p>
-                        <input type="file" id="audioFile" accept=".mp3,.flac,.wav" hidden>
-                        <button class="upload-btn" onclick="document.getElementById('audioFile').click()">
-                            Choose Audio File
-                        </button>
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="player">
+                <span class="tab-icon">🎵</span>
+                <span class="tab-text">Player</span>
+            </button>
+            <button class="tab-btn" data-tab="editor">
+                <span class="tab-icon">✏️</span>
+                <span class="tab-text">Lyrics Editor</span>
+            </button>
+        </nav>
+
+        <!-- Player Tab Content -->
+        <div class="tab-content active" id="playerTab">
+            <!-- File Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-container">
+                    <div class="file-upload-area">
+                        <div class="upload-box" id="audioUploadBox">
+                            <div class="upload-icon">🎵</div>
+                            <h3>Audio File</h3>
+                            <p>MP3, FLAC, or WAV</p>
+                            <input type="file" id="audioFile" accept=".mp3,.flac,.wav" hidden>
+                            <button class="upload-btn" onclick="document.getElementById('audioFile').click()">
+                                Choose Audio File
+                            </button>
+                        </div>
+                        
+                        <div class="upload-box" id="lyricsUploadBox">
+                            <div class="upload-icon">📝</div>
+                            <h3>Lyrics File</h3>
+                            <p>.lrc format</p>
+                            <input type="file" id="lyricsFile" accept=".lrc" hidden>
+                            <button class="upload-btn" onclick="document.getElementById('lyricsFile').click()">
+                                Choose Lyrics File
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="upload-box" id="lyricsUploadBox">
-                        <div class="upload-icon">📝</div>
-                        <h3>Lyrics File</h3>
-                        <p>.lrc format</p>
-                        <input type="file" id="lyricsFile" accept=".lrc" hidden>
-                        <button class="upload-btn" onclick="document.getElementById('lyricsFile').click()">
-                            Choose Lyrics File
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="file-info" id="fileInfo" style="display: none;">
-                    <div class="file-details">
-                        <div class="file-item">
-                            <span class="file-label">Audio:</span>
-                            <span class="file-name" id="audioFileName">-</span>
-                        </div>
-                        <div class="file-item">
-                            <span class="file-label">Lyrics:</span>
-                            <span class="file-name" id="lyricsFileName">-</span>
+                    <div class="file-info" id="fileInfo" style="display: none;">
+                        <div class="file-details">
+                            <div class="file-item">
+                                <span class="file-label">Audio:</span>
+                                <span class="file-name" id="audioFileName">-</span>
+                            </div>
+                            <div class="file-item">
+                                <span class="file-label">Lyrics:</span>
+                                <span class="file-name" id="lyricsFileName">-</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- Player Section -->
-        <section class="player-section" id="playerSection" style="display: none;">
-            <!-- Audio Player -->
-            <div class="audio-player">
-                <audio id="audioPlayer" controls>
-                    Your browser does not support the audio element.
-                </audio>
-                
-                <div class="player-info">
-                    <div class="track-info">
-                        <h3 id="trackTitle">Unknown Track</h3>
-                        <p id="trackDuration">00:00 / 00:00</p>
+            <!-- Player Section -->
+            <section class="player-section" id="playerSection" style="display: none;">
+                <!-- Audio Player -->
+                <div class="audio-player">
+                    <audio id="audioPlayer" controls>
+                        Your browser does not support the audio element.
+                    </audio>
+                    
+                    <div class="player-info">
+                        <div class="track-info">
+                            <h3 id="trackTitle">Unknown Track</h3>
+                            <p id="trackDuration">00:00 / 00:00</p>
+                        </div>
+                        
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="time-display">
+                                <span id="currentTime">00:00</span>
+                                <span id="totalTime">00:00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lyrics Display -->
+                <div class="lyrics-container">
+                    <div class="lyrics-header">
+                        <h3>Lyrics</h3>
+                        <div class="lyrics-controls">
+                            <button class="control-btn" id="toggleAutoScroll" title="Toggle auto-scroll">
+                                📜 <span class="btn-text">Auto-scroll ON</span>
+                            </button>
+                            <button class="control-btn" id="scrollToTop" title="Scroll to top">
+                                ⬆️
+                            </button>
+                        </div>
                     </div>
                     
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="progressFill"></div>
-                        </div>
-                        <div class="time-display">
-                            <span id="currentTime">00:00</span>
-                            <span id="totalTime">00:00</span>
+                    <div class="lyrics-content" id="lyricsContent">
+                        <div class="lyrics-placeholder">
+                            <p>Load a .lrc file to see synchronized lyrics</p>
                         </div>
                     </div>
                 </div>
-            </div>
+            </section>
+        </div>
 
-            <!-- Lyrics Display -->
-            <div class="lyrics-container">
-                <div class="lyrics-header">
-                    <h3>Lyrics</h3>
-                    <div class="lyrics-controls">
-                        <button class="control-btn" id="toggleAutoScroll" title="Toggle auto-scroll">
-                            📜
-                        </button>
+        <!-- Editor Tab Content -->
+        <div class="tab-content" id="editorTab">
+            <section class="editor-section">
+                <div class="editor-container">
+                    <div class="editor-header">
+                        <h2>✏️ Lyrics Editor</h2>
+                        <p>Create and annotate lyrics with timestamps to generate .lrc files</p>
+                    </div>
+
+                    <!-- Audio Loader for Editor -->
+                    <div class="editor-audio-section">
+                        <h3>🎵 Load Audio (Optional)</h3>
+                        <p>Load an audio file to help with timing annotations</p>
+                        <div class="audio-upload-area">
+                            <input type="file" id="editorAudioFile" accept=".mp3,.flac,.wav" hidden>
+                            <button class="upload-btn" onclick="document.getElementById('editorAudioFile').click()">
+                                Choose Audio File
+                            </button>
+                            <span id="editorAudioFileName" class="file-name-display"></span>
+                        </div>
+                        <div class="editor-audio-player" id="editorAudioPlayer" style="display: none;">
+                            <audio id="editorAudio" controls>
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    </div>
+
+                    <!-- Lyrics Input -->
+                    <div class="lyrics-input-section">
+                        <h3>📝 Enter Lyrics</h3>
+                        <div class="lyrics-input-container">
+                            <textarea id="lyricsTextarea" placeholder="Enter your lyrics here, one line per verse...&#10;&#10;Example:&#10;This is the first line of the song&#10;And this is the second line&#10;The lyrics will sync with the music&#10;As the song continues to play"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Annotation Controls -->
+                    <div class="annotation-controls">
+                        <h3>⏱️ Timing Controls</h3>
+                        <div class="control-buttons">
+                            <button class="control-btn" id="markTimeBtn">
+                                <span class="btn-icon">⏱️</span>
+                                <span class="btn-text">Mark Current Time</span>
+                            </button>
+                            <button class="control-btn" id="playFromMarkBtn">
+                                <span class="btn-icon">▶️</span>
+                                <span class="btn-text">Play from Mark</span>
+                            </button>
+                            <button class="control-btn" id="clearAllBtn">
+                                <span class="btn-icon">🗑️</span>
+                                <span class="btn-text">Clear All</span>
+                            </button>
+                        </div>
+                        <div class="current-time-display">
+                            <span>Current Time: </span>
+                            <span id="editorCurrentTime">00:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Annotated Lyrics Display -->
+                    <div class="annotated-lyrics-section">
+                        <h3>📋 Annotated Lyrics</h3>
+                        <div class="annotated-lyrics-container" id="annotatedLyricsContainer">
+                            <div class="lyrics-placeholder">
+                                <p>Start by entering lyrics and marking timestamps</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Export Section -->
+                    <div class="export-section">
+                        <h3>💾 Export LRC File</h3>
+                        <div class="export-controls">
+                            <input type="text" id="songTitle" placeholder="Song Title" class="export-input">
+                            <input type="text" id="artistName" placeholder="Artist Name" class="export-input">
+                            <button class="export-btn" id="exportLrcBtn">
+                                <span class="btn-icon">💾</span>
+                                <span class="btn-text">Export .lrc File</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="lyrics-content" id="lyricsContent">
-                    <div class="lyrics-placeholder">
-                        <p>Load a .lrc file to see synchronized lyrics</p>
-                    </div>
-                </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
         <!-- Error Messages -->
         <div class="error-message" id="errorMessage" style="display: none;"></div>
