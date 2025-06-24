@@ -103,12 +103,24 @@
                             <button class="control-btn" id="toggleAutoScroll" title="Toggle auto-scroll">
                                 📜 <span class="btn-text">Auto-scroll ON</span>
                             </button>
+                            <button class="control-btn" id="toggleWordTiming" title="Toggle word-by-word highlighting">
+                                🔤 <span class="btn-text">Word Timing OFF</span>
+                            </button>
                             <button class="control-btn" id="scrollToTop" title="Scroll to top">
                                 ⬆️
                             </button>
                         </div>
                     </div>
                     
+                    <div class="timing-info" id="timingInfo" style="display: none;">
+                        <div class="timing-details">
+                            <span class="timing-label">Line Duration:</span>
+                            <span class="timing-value" id="lineDuration">--</span>
+                            <span class="timing-label">Words per second:</span>
+                            <span class="timing-value" id="wordsPerSecond">--</span>
+                        </div>
+                    </div>
+
                     <div class="lyrics-content" id="lyricsContent">
                         <div class="lyrics-placeholder">
                             <p>Load a .lrc file to see synchronized lyrics</p>

@@ -13,6 +13,11 @@ class LyricsPlayer {
         this.annotatedLyrics = [];
         this.currentLyricIndex = 0;
         
+        // Word timing properties
+        this.wordTiming = false;
+        this.wordTimings = [];
+        this.currentWordIndex = -1;
+        
         this.initializeElements();
         this.bindEvents();
         this.loadFromStorage();
@@ -42,6 +47,7 @@ class LyricsPlayer {
         // Lyrics elements
         this.lyricsContent = document.getElementById('lyricsContent');
         this.toggleAutoScrollBtn = document.getElementById('toggleAutoScroll');
+        this.toggleWordTimingBtn = document.getElementById('toggleWordTiming');
         this.scrollToTopBtn = document.getElementById('scrollToTop');
         
         // Tab navigation
@@ -66,6 +72,11 @@ class LyricsPlayer {
         this.songTitleInput = document.getElementById('songTitle');
         this.artistNameInput = document.getElementById('artistName');
         this.exportLrcBtn = document.getElementById('exportLrcBtn');
+        
+        // Timing analysis elements
+        this.timingInfo = document.getElementById('timingInfo');
+        this.lineDuration = document.getElementById('lineDuration');
+        this.wordsPerSecond = document.getElementById('wordsPerSecond');
     }
 
     bindEvents() {
@@ -80,6 +91,7 @@ class LyricsPlayer {
         
         // Lyrics control events
         this.toggleAutoScrollBtn.addEventListener('click', () => this.toggleAutoScroll());
+        this.toggleWordTimingBtn.addEventListener('click', () => this.toggleWordTiming());
         this.scrollToTopBtn.addEventListener('click', () => this.scrollToTop());
         
         // Drag and drop events
@@ -204,6 +216,12 @@ class LyricsPlayer {
             try {
                 this.lyrics = this.parseLRC(e.target.result);
                 this.displayLyrics();
+                
+                // Calculate word timings if word timing is enabled
+                if (this.wordTiming) {
+                    this.calculateWordTimings();
+                }
+                
                 this.saveToStorage();
                 this.checkFilesLoaded();
             } catch (error) {
@@ -261,11 +279,31 @@ class LyricsPlayer {
         this.lyrics.forEach((lyric, index) => {
             const lineElement = document.createElement('div');
             lineElement.className = 'lyrics-line';
-            lineElement.textContent = lyric.text;
             lineElement.dataset.index = index;
             lineElement.dataset.time = lyric.time;
+            
+            if (this.wordTiming) {
+                // Split into words for word-by-word highlighting
+                const words = lyric.text.split(' ');
+                words.forEach((word, wordIndex) => {
+                    const wordElement = document.createElement('span');
+                    wordElement.className = 'word';
+                    wordElement.textContent = word + ' ';
+                    wordElement.dataset.lineIndex = index;
+                    wordElement.dataset.wordIndex = wordIndex;
+                    lineElement.appendChild(wordElement);
+                });
+            } else {
+                lineElement.textContent = lyric.text;
+            }
+            
             this.lyricsContent.appendChild(lineElement);
         });
+        
+        // Initialize word display if word timing is enabled
+        if (this.wordTiming) {
+            this.updateWordDisplay();
+        }
     }
 
     updateProgress() {
@@ -279,6 +317,7 @@ class LyricsPlayer {
         
         this.currentTimeSpan.textContent = this.formatTime(currentTime);
         this.updateLyricsSync(currentTime);
+        this.updateWordTiming(currentTime);
     }
 
     updateTrackInfo() {
@@ -303,6 +342,7 @@ class LyricsPlayer {
         if (activeIndex !== this.currentLineIndex) {
             this.currentLineIndex = activeIndex;
             this.updateLyricsDisplay();
+            this.updateTimingAnalysis();
         }
     }
 
@@ -415,7 +455,8 @@ class LyricsPlayer {
             const session = {
                 audioFileName: this.audioFile?.name || '',
                 lyricsFileName: this.lyricsFile?.name || '',
-                autoScroll: this.autoScroll
+                autoScroll: this.autoScroll,
+                wordTiming: this.wordTiming
             };
             localStorage.setItem('lyricsPlayerSession', JSON.stringify(session));
         } catch (error) {
@@ -428,14 +469,25 @@ class LyricsPlayer {
             const session = JSON.parse(localStorage.getItem('lyricsPlayerSession'));
             if (session) {
                 this.autoScroll = session.autoScroll ?? true;
+                this.wordTiming = session.wordTiming ?? false;
+                
                 this.toggleAutoScrollBtn.classList.toggle('active', this.autoScroll);
                 this.toggleAutoScrollBtn.title = this.autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll';
+                
+                this.toggleWordTimingBtn.classList.toggle('active', this.wordTiming);
+                this.toggleWordTimingBtn.title = this.wordTiming ? 'Disable word timing' : 'Enable word timing';
                 
                 // Initialize button text
                 if (this.autoScroll) {
                     this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll ON</span>';
                 } else {
                     this.toggleAutoScrollBtn.innerHTML = '📜 <span class="btn-text">Auto-scroll OFF</span>';
+                }
+                
+                if (this.wordTiming) {
+                    this.toggleWordTimingBtn.innerHTML = '🔤 <span class="btn-text">Word Timing ON</span>';
+                } else {
+                    this.toggleWordTimingBtn.innerHTML = '🔤 <span class="btn-text">Word Timing OFF</span>';
                 }
             }
         } catch (error) {
@@ -642,6 +694,119 @@ class LyricsPlayer {
         URL.revokeObjectURL(url);
         
         this.showError('LRC file exported successfully!');
+    }
+
+    calculateWordTimings() {
+        this.wordTimings = [];
+        
+        for (let i = 0; i < this.lyrics.length; i++) {
+            const currentLine = this.lyrics[i];
+            const nextLine = this.lyrics[i + 1];
+            
+            const lineStartTime = currentLine.time;
+            const lineEndTime = nextLine ? nextLine.time : lineStartTime + 3; // Default 3 seconds if no next line
+            
+            const words = currentLine.text.split(' ');
+            const wordCount = words.length;
+            const timePerWord = (lineEndTime - lineStartTime) / wordCount;
+            
+            const lineWordTimings = words.map((word, wordIndex) => ({
+                word: word,
+                startTime: lineStartTime + (wordIndex * timePerWord),
+                endTime: lineStartTime + ((wordIndex + 1) * timePerWord),
+                lineIndex: i,
+                wordIndex: wordIndex
+            }));
+            
+            this.wordTimings.push(...lineWordTimings);
+        }
+    }
+
+    toggleWordTiming() {
+        this.wordTiming = !this.wordTiming;
+        this.toggleWordTimingBtn.classList.toggle('active', this.wordTiming);
+        this.toggleWordTimingBtn.title = this.wordTiming ? 'Disable word timing' : 'Enable word timing';
+        
+        // Update button text
+        if (this.wordTiming) {
+            this.toggleWordTimingBtn.innerHTML = '🔤 <span class="btn-text">Word Timing ON</span>';
+            // Calculate word timings if lyrics are loaded
+            if (this.lyrics.length > 0) {
+                this.calculateWordTimings();
+            }
+        } else {
+            this.toggleWordTimingBtn.innerHTML = '🔤 <span class="btn-text">Word Timing OFF</span>';
+            this.currentWordIndex = -1;
+        }
+        
+        // Refresh display
+        this.displayLyrics();
+    }
+
+    updateWordTiming(currentTime) {
+        if (!this.wordTiming || this.wordTimings.length === 0) return;
+        
+        let newWordIndex = -1;
+        
+        // Find the current word
+        for (let i = 0; i < this.wordTimings.length; i++) {
+            if (currentTime >= this.wordTimings[i].startTime && currentTime < this.wordTimings[i].endTime) {
+                newWordIndex = i;
+                break;
+            }
+        }
+        
+        // Update word index if changed
+        if (newWordIndex !== this.currentWordIndex) {
+            this.currentWordIndex = newWordIndex;
+            this.updateWordDisplay();
+        }
+    }
+
+    updateWordDisplay() {
+        if (!this.wordTiming) return;
+        
+        const lines = this.lyricsContent.querySelectorAll('.lyrics-line');
+        
+        lines.forEach((line, lineIndex) => {
+            const words = line.querySelectorAll('.word');
+            words.forEach((word, wordIndex) => {
+                word.classList.remove('current-word', 'past-word', 'future-word');
+                
+                if (this.currentWordIndex >= 0) {
+                    const currentWord = this.wordTimings[this.currentWordIndex];
+                    if (currentWord.lineIndex === lineIndex && currentWord.wordIndex === wordIndex) {
+                        word.classList.add('current-word');
+                    } else if (currentWord.lineIndex > lineIndex || 
+                             (currentWord.lineIndex === lineIndex && currentWord.wordIndex > wordIndex)) {
+                        word.classList.add('past-word');
+                    } else {
+                        word.classList.add('future-word');
+                    }
+                }
+            });
+        });
+    }
+
+    updateTimingAnalysis() {
+        if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
+            const currentLine = this.lyrics[this.currentLineIndex];
+            const nextLine = this.lyrics[this.currentLineIndex + 1];
+            
+            const lineStartTime = currentLine.time;
+            const lineEndTime = nextLine ? nextLine.time : lineStartTime + 3;
+            const lineDuration = lineEndTime - lineStartTime;
+            
+            const wordCount = currentLine.text.split(' ').length;
+            const wordsPerSecond = wordCount / lineDuration;
+            
+            this.lineDuration.textContent = this.formatTime(lineDuration);
+            this.wordsPerSecond.textContent = wordsPerSecond.toFixed(1);
+            
+            this.timingInfo.style.display = 'block';
+        } else {
+            this.timingInfo.style.display = 'none';
+        }
     }
 }
 

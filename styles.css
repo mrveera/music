@@ -296,6 +296,30 @@ body {
     color: #ffffff;
 }
 
+.timing-info {
+    background: rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 20px;
+}
+
+.timing-details {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.timing-label {
+    color: #b8b8b8;
+    font-weight: 500;
+}
+
+.timing-value {
+    color: #4ecdc4;
+    font-weight: 600;
+    font-family: 'Monaco', 'Menlo', monospace;
+}
+
 .control-btn {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -375,6 +399,57 @@ body {
 .lyrics-line.future {
     opacity: 0.3;
     color: #888888;
+}
+
+/* Word Timing Styles */
+.word {
+    display: inline-block;
+    transition: all 0.3s ease;
+    padding: 2px 1px;
+    border-radius: 4px;
+    position: relative;
+}
+
+.word.current-word {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-weight: 700;
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.3);
+    animation: wordPulse 0.8s ease-in-out;
+}
+
+.word.current-word::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
+    border-radius: 1px;
+    animation: wordProgress 0.8s ease-out;
+}
+
+.word.past-word {
+    color: #4ecdc4;
+    opacity: 0.8;
+}
+
+.word.future-word {
+    color: #888888;
+    opacity: 0.5;
+}
+
+@keyframes wordPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1.05); }
+}
+
+@keyframes wordProgress {
+    0% { width: 0%; }
+    100% { width: 100%; }
 }
 
 /* Editor Section */
