@@ -71,27 +71,54 @@
 
             <!-- Player Section -->
             <section class="player-section" id="playerSection" style="display: none;">
-                <!-- Audio Player -->
-                <div class="audio-player">
-                    <audio id="audioPlayer" controls>
+                <!-- Video-like Player Container -->
+                <div class="video-player-container">
+                    <!-- Video Display Area -->
+                    <div class="video-display">
+                        <div class="video-overlay">
+                            <div class="current-line-display" id="currentLineDisplay">
+                                <div class="line-text" id="currentLineText">Load audio and lyrics to start</div>
+                                <div class="line-progress">
+                                    <div class="line-progress-bar">
+                                        <div class="line-progress-fill" id="lineProgressFill"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-controls-overlay">
+                            <div class="video-controls">
+                                <button class="video-control-btn" id="playPauseBtn" title="Play/Pause">
+                                    <span class="control-icon">▶️</span>
+                                </button>
+                                <div class="video-progress">
+                                    <div class="video-progress-bar">
+                                        <div class="video-progress-fill" id="videoProgressFill"></div>
+                                        <div class="video-progress-handle" id="videoProgressHandle"></div>
+                                    </div>
+                                </div>
+                                <div class="video-time">
+                                    <span id="videoCurrentTime">00:00</span>
+                                    <span>/</span>
+                                    <span id="videoTotalTime">00:00</span>
+                                </div>
+                                <button class="video-control-btn" id="fullscreenBtn" title="Fullscreen">
+                                    <span class="control-icon">⛶</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Audio Player (Hidden) -->
+                    <audio id="audioPlayer" style="display: none;">
                         Your browser does not support the audio element.
                     </audio>
-                    
-                    <div class="player-info">
-                        <div class="track-info">
-                            <h3 id="trackTitle">Unknown Track</h3>
-                            <p id="trackDuration">00:00 / 00:00</p>
-                        </div>
-                        
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progressFill"></div>
-                            </div>
-                            <div class="time-display">
-                                <span id="currentTime">00:00</span>
-                                <span id="totalTime">00:00</span>
-                            </div>
-                        </div>
+                </div>
+
+                <!-- Track Info -->
+                <div class="track-info-container">
+                    <div class="track-details">
+                        <h3 id="trackTitle">Unknown Track</h3>
+                        <p id="trackDuration">00:00 / 00:00</p>
                     </div>
                 </div>
 

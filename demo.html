@@ -3,326 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎧 Offline Lyrics Player - Demo</title>
+    <title>🎧 Lyrics Player - Video-like Interface Demo</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .demo-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 30px;
-            margin: 20px 0;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
-        .feature-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        
-        .cta-button {
-            display: inline-block;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
-            text-decoration: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-weight: 600;
-            margin: 10px;
-            transition: all 0.3s ease;
-        }
-        
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.3);
-        }
-        
-        .code-block {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 20px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9rem;
-            overflow-x: auto;
-            margin: 15px 0;
-        }
-        
-        .mode-comparison {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 30px 0;
-        }
-        
-        .mode-card {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .mode-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: #ffffff;
-        }
-        
-        .mode-card .mode-icon {
-            font-size: 3rem;
-            margin-bottom: 15px;
-        }
-        
-        .workflow-steps {
-            list-style: none;
-            padding: 0;
-        }
-        
-        .workflow-steps li {
-            padding: 8px 0;
-            border-left: 3px solid #4ecdc4;
-            padding-left: 15px;
-            margin: 5px 0;
-        }
-        
-        .workflow-steps li::before {
-            content: '→';
-            color: #4ecdc4;
-            font-weight: bold;
-            margin-right: 10px;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
-            <h1 class="title">🎧 Offline Lyrics Player</h1>
-            <p class="subtitle">Demo & Features Showcase</p>
+            <h1 class="title">🎧 Video-like Lyrics Player</h1>
+            <p class="subtitle">Experience lyrics as visual content in a video player interface</p>
         </header>
 
-        <!-- Demo Section -->
-        <section class="demo-section">
-            <h2>✨ Features Overview</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🎵</div>
-                    <h3>Audio Support</h3>
-                    <p>Load MP3, FLAC, and WAV files directly from your device. No uploads, no servers - everything stays local.</p>
+        <!-- Demo Player Section -->
+        <section class="player-section" style="display: block;">
+            <!-- Video-like Player Container -->
+            <div class="video-player-container">
+                <!-- Video Display Area -->
+                <div class="video-display">
+                    <div class="video-overlay">
+                        <div class="current-line-display" id="currentLineDisplay">
+                            <div class="line-text" id="currentLineText">Welcome to the Video-like Lyrics Player</div>
+                            <div class="line-progress">
+                                <div class="line-progress-bar">
+                                    <div class="line-progress-fill" id="lineProgressFill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls-overlay">
+                        <div class="video-controls">
+                            <button class="video-control-btn" id="playPauseBtn" title="Play/Pause">
+                                <span class="control-icon">▶️</span>
+                            </button>
+                            <div class="video-progress">
+                                <div class="video-progress-bar">
+                                    <div class="video-progress-fill" id="videoProgressFill"></div>
+                                    <div class="video-progress-handle" id="videoProgressHandle"></div>
+                                </div>
+                            </div>
+                            <div class="video-time">
+                                <span id="videoCurrentTime">00:00</span>
+                                <span>/</span>
+                                <span id="videoTotalTime">00:00</span>
+                            </div>
+                            <button class="video-control-btn" id="fullscreenBtn" title="Fullscreen">
+                                <span class="control-icon">⛶</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="feature-card">
-                    <div class="feature-icon">📝</div>
-                    <h3>LRC Lyrics</h3>
-                    <p>Standard .lrc format support with precise timestamp synchronization. Perfect for karaoke and language learning.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Real-time Sync</h3>
-                    <p>Lyrics highlight and scroll automatically as the music plays. Toggle auto-scroll on/off as needed.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">✏️</div>
-                    <h3>Lyrics Editor</h3>
-                    <p>Create and annotate lyrics with timestamps to generate .lrc files. Perfect for creating your own synchronized lyrics.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Responsive Design</h3>
-                    <p>Works perfectly on desktop, tablet, and mobile devices. Touch-friendly interface with smooth animations.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🖱️</div>
-                    <h3>Drag & Drop</h3>
-                    <p>Simply drag your audio and lyrics files onto the upload areas for instant loading.</p>
+                <!-- Audio Player (Hidden) -->
+                <audio id="audioPlayer" style="display: none;">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+
+            <!-- Track Info -->
+            <div class="track-info-container">
+                <div class="track-details">
+                    <h3 id="trackTitle">Demo Track</h3>
+                    <p id="trackDuration">00:00 / 00:00</p>
                 </div>
             </div>
-        </section>
 
-        <!-- Mode Comparison -->
-        <section class="demo-section">
-            <h2>🎮 Two Powerful Modes</h2>
-            <div class="mode-comparison">
-                <div class="mode-card">
-                    <div class="mode-icon">🎵</div>
-                    <h3>Player Mode</h3>
-                    <p>Load existing audio and .lrc files for synchronized playback.</p>
-                    <ul class="workflow-steps">
-                        <li>Load your audio file (MP3, FLAC, WAV)</li>
-                        <li>Load a .lrc lyrics file</li>
-                        <li>Play and enjoy synchronized lyrics</li>
-                        <li>Use auto-scroll and seek controls</li>
-                    </ul>
+            <!-- Demo Instructions -->
+            <div class="lyrics-container">
+                <div class="lyrics-header">
+                    <h3>How to Use</h3>
                 </div>
-                
-                <div class="mode-card">
-                    <div class="mode-icon">✏️</div>
-                    <h3>Editor Mode</h3>
-                    <p>Create new .lrc files from scratch with precise timing.</p>
-                    <ul class="workflow-steps">
-                        <li>Load an audio file (optional)</li>
-                        <li>Enter your lyrics line by line</li>
-                        <li>Mark timestamps while listening</li>
-                        <li>Export as .lrc file</li>
-                    </ul>
+                <div class="lyrics-content">
+                    <div style="padding: 20px; color: #b8b8b8;">
+                        <h4 style="color: #4ecdc4; margin-bottom: 15px;">🎯 Features:</h4>
+                        <ul style="list-style: none; padding: 0;">
+                            <li style="margin-bottom: 10px;">🎬 <strong>Video-like Interface:</strong> Lyrics appear as visual content in a video player</li>
+                            <li style="margin-bottom: 10px;">🎵 <strong>Custom Controls:</strong> Play/pause, seek, and fullscreen controls</li>
+                            <li style="margin-bottom: 10px;">📊 <strong>Progress Tracking:</strong> Both overall progress and line-by-line progress</li>
+                            <li style="margin-bottom: 10px;">🎨 <strong>Beautiful Animations:</strong> Smooth transitions and visual effects</li>
+                            <li style="margin-bottom: 10px;">📱 <strong>Responsive Design:</strong> Works on all device sizes</li>
+                        </ul>
+                        
+                        <h4 style="color: #4ecdc4; margin: 20px 0 15px 0;">🚀 Getting Started:</h4>
+                        <ol style="padding-left: 20px;">
+                            <li style="margin-bottom: 8px;">Upload an audio file (MP3, FLAC, or WAV)</li>
+                            <li style="margin-bottom: 8px;">Upload a .lrc lyrics file with timestamps</li>
+                            <li style="margin-bottom: 8px;">Watch as lyrics appear in the video area as the song plays</li>
+                            <li style="margin-bottom: 8px;">Use the controls to navigate and control playback</li>
+                        </ol>
+                        
+                        <div style="background: rgba(78, 205, 196, 0.1); border: 1px solid rgba(78, 205, 196, 0.3); border-radius: 10px; padding: 15px; margin-top: 20px;">
+                            <p style="margin: 0; color: #4ecdc4; font-weight: 500;">
+                                💡 <strong>Tip:</strong> Try hovering over the video area to see the controls, and click the fullscreen button for an immersive experience!
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </section>
-
-        <!-- LRC Format Demo -->
-        <section class="demo-section">
-            <h2>📝 LRC File Format</h2>
-            <p>The app uses the standard LRC (Lyric) format with timestamps:</p>
-            
-            <div class="code-block">
-[00:00.00]Song Title
-[00:03.45]Artist Name
-[00:07.20]
-[00:10.15]First line of lyrics
-[00:13.80]Second line of lyrics
-[00:17.25]Third line of lyrics
-            </div>
-            
-            <p><strong>Format:</strong> <code>[mm:ss.xx]</code> where mm=minutes, ss=seconds, xx=centiseconds</p>
-        </section>
-
-        <!-- Editor Features -->
-        <section class="demo-section">
-            <h2>✏️ Editor Features</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">⏱️</div>
-                    <h3>Real-time Timing</h3>
-                    <p>Mark exact timestamps while listening to audio. Click "Mark Current Time" when each line should appear.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">👁️</div>
-                    <h3>Visual Feedback</h3>
-                    <p>See all annotated lines with their timestamps in a clear, organized display.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">▶️</div>
-                    <h3>Playback Testing</h3>
-                    <p>Test your annotations by playing from any marked line. Perfect for fine-tuning timing.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🗑️</div>
-                    <h3>Edit & Delete</h3>
-                    <p>Remove or modify any annotated line. Easy to correct mistakes and adjust timing.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">⏭️</div>
-                    <h3>Auto-advance</h3>
-                    <p>Automatically moves to the next line after marking, streamlining the annotation process.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">💾</div>
-                    <h3>Export Ready</h3>
-                    <p>Generate standard .lrc files ready for use in any compatible player or application.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Sample Files -->
-        <section class="demo-section">
-            <h2>🎵 Sample Files</h2>
-            <p>Download these sample files to test the application:</p>
-            
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <h3>Sample LRC File</h3>
-                    <p>A complete .lrc file with 25+ timestamped lines for testing the player mode.</p>
-                    <a href="sample-song.lrc" download class="cta-button">Download sample-song.lrc</a>
-                </div>
-                
-                <div class="feature-card">
-                    <h3>Audio File</h3>
-                    <p>You'll need an MP3, FLAC, or WAV file to test with the lyrics.</p>
-                    <p><em>Use any audio file from your music library</em></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- How to Use -->
-        <section class="demo-section">
-            <h2>🚀 How to Use</h2>
-            
-            <h3>Player Mode</h3>
-            <ol style="line-height: 2; padding-left: 20px; margin-bottom: 30px;">
-                <li><strong>Open the app:</strong> Open <code>index.html</code> in your browser</li>
-                <li><strong>Load audio:</strong> Click "Choose Audio File" or drag an MP3/FLAC/WAV file</li>
-                <li><strong>Load lyrics:</strong> Click "Choose Lyrics File" or drag a .lrc file</li>
-                <li><strong>Play:</strong> Use the audio controls to start playback</li>
-                <li><strong>Enjoy:</strong> Watch the lyrics sync with your music!</li>
-            </ol>
-            
-            <h3>Editor Mode</h3>
-            <ol style="line-height: 2; padding-left: 20px;">
-                <li><strong>Switch to Editor:</strong> Click the "Lyrics Editor" tab</li>
-                <li><strong>Load Audio (Optional):</strong> Load an audio file to help with timing</li>
-                <li><strong>Enter Lyrics:</strong> Type your lyrics in the text area (one line per verse)</li>
-                <li><strong>Mark Timestamps:</strong> Play audio and click "Mark Current Time" for each line</li>
-                <li><strong>Export:</strong> Add song info and click "Export .lrc File"</li>
-            </ol>
-        </section>
-
-        <!-- Browser Support -->
-        <section class="demo-section">
-            <h2>🌐 Browser Compatibility</h2>
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3>Chrome</h3>
-                    <p>Latest version - Full support</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3>Firefox</h3>
-                    <p>Latest version - Full support</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3>Safari</h3>
-                    <p>Latest version - Full support</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">✅</div>
-                    <h3>Edge</h3>
-                    <p>Latest version - Full support</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Call to Action -->
-        <section class="demo-section" style="text-align: center;">
-            <h2>🎧 Ready to Try?</h2>
-            <p>Experience synchronized lyrics with your own music files or create new .lrc files!</p>
-            <a href="index.html" class="cta-button">Launch App</a>
-            <a href="README.md" class="cta-button">View Documentation</a>
         </section>
     </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Demo script to show the interface
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate some demo content
+            const demoLines = [
+                "Welcome to the Video-like Lyrics Player",
+                "Experience lyrics as visual content",
+                "In a beautiful video player interface",
+                "With smooth animations and transitions",
+                "Perfect for karaoke and music enjoyment"
+            ];
+            
+            let currentLineIndex = 0;
+            const currentLineText = document.getElementById('currentLineText');
+            const lineProgressFill = document.getElementById('lineProgressFill');
+            
+            // Cycle through demo lines
+            setInterval(() => {
+                currentLineText.textContent = demoLines[currentLineIndex];
+                currentLineIndex = (currentLineIndex + 1) % demoLines.length;
+                
+                // Add animation
+                const display = document.getElementById('currentLineDisplay');
+                display.classList.add('fade-in');
+                setTimeout(() => {
+                    display.classList.remove('fade-in');
+                }, 300);
+                
+                // Simulate progress
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 2;
+                    lineProgressFill.style.width = progress + '%';
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        lineProgressFill.style.width = '0%';
+                    }
+                }, 100);
+            }, 3000);
+        });
+    </script>
 </body>
 </html> 

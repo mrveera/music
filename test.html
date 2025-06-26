@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Lyrics in Video Content</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title">🎧 Test - Lyrics in Video Content</h1>
+            <p class="subtitle">Testing if lyrics appear in the video display area</p>
+        </header>
+
+        <!-- Test Player Section -->
+        <section class="player-section" style="display: block;">
+            <!-- Video-like Player Container -->
+            <div class="video-player-container">
+                <!-- Video Display Area -->
+                <div class="video-display">
+                    <div class="video-overlay">
+                        <div class="current-line-display" id="currentLineDisplay">
+                            <div class="line-text" id="currentLineText">Loading test lyrics...</div>
+                            <div class="line-progress">
+                                <div class="line-progress-bar">
+                                    <div class="line-progress-fill" id="lineProgressFill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-controls-overlay">
+                        <div class="video-controls">
+                            <button class="video-control-btn" id="playPauseBtn" title="Play/Pause">
+                                <span class="control-icon">▶️</span>
+                            </button>
+                            <div class="video-progress">
+                                <div class="video-progress-bar">
+                                    <div class="video-progress-fill" id="videoProgressFill"></div>
+                                    <div class="video-progress-handle" id="videoProgressHandle"></div>
+                                </div>
+                            </div>
+                            <div class="video-time">
+                                <span id="videoCurrentTime">00:00</span>
+                                <span>/</span>
+                                <span id="videoTotalTime">00:00</span>
+                            </div>
+                            <button class="video-control-btn" id="fullscreenBtn" title="Fullscreen">
+                                <span class="control-icon">⛶</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Audio Player (Hidden) -->
+                <audio id="audioPlayer" style="display: none;">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+
+            <!-- Test Controls -->
+            <div class="track-info-container">
+                <div class="track-details">
+                    <h3 id="trackTitle">Test Track</h3>
+                    <p id="trackDuration">00:00 / 00:00</p>
+                </div>
+                <div style="margin-top: 15px;">
+                    <button onclick="loadTestLyrics()" style="background: #4ecdc4; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px;">
+                        Load Test Lyrics
+                    </button>
+                    <button onclick="loadSampleLyrics()" style="background: #ff6b6b; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-right: 10px;">
+                        Load Sample LRC
+                    </button>
+                    <button onclick="simulatePlayback()" style="background: #4ecdc4; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">
+                        Simulate Playback
+                    </button>
+                </div>
+            </div>
+
+            <!-- Debug Info -->
+            <div class="lyrics-container">
+                <div class="lyrics-header">
+                    <h3>Debug Information</h3>
+                </div>
+                <div class="lyrics-content">
+                    <div id="debugInfo" style="padding: 20px; color: #b8b8b8;">
+                        <p><strong>Status:</strong> <span id="status">Waiting for test...</span></p>
+                        <p><strong>Lyrics Count:</strong> <span id="lyricsCount">0</span></p>
+                        <p><strong>Current Line Index:</strong> <span id="currentLineIndex">-1</span></p>
+                        <p><strong>Current Line Text:</strong> <span id="currentLineTextDebug">None</span></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Test lyrics data
+        const testLyrics = [
+            { time: 0, text: "This is the first line of the song" },
+            { time: 3, text: "And this is the second line" },
+            { time: 6, text: "The lyrics will sync with the music" },
+            { time: 9, text: "As the song continues to play" },
+            { time: 12, text: "You can see the words light up" },
+            { time: 15, text: "As they match the audio timing" },
+            { time: 18, text: "Perfect for karaoke nights" },
+            { time: 21, text: "Or learning new languages" }
+        ];
+
+        let currentLineIndex = -1;
+        let currentTime = 0;
+
+        function loadTestLyrics() {
+            document.getElementById('status').textContent = 'Test lyrics loaded';
+            document.getElementById('lyricsCount').textContent = testLyrics.length;
+            document.getElementById('currentLineText').textContent = testLyrics[0].text;
+            document.getElementById('currentLineTextDebug').textContent = testLyrics[0].text;
+            currentLineIndex = 0;
+            document.getElementById('currentLineIndex').textContent = currentLineIndex;
+        }
+
+        function simulatePlayback() {
+            if (testLyrics.length === 0) {
+                alert('Please load test lyrics first!');
+                return;
+            }
+
+            let lineIndex = 0;
+            const interval = setInterval(() => {
+                if (lineIndex < testLyrics.length) {
+                    const line = testLyrics[lineIndex];
+                    document.getElementById('currentLineText').textContent = line.text;
+                    document.getElementById('currentLineTextDebug').textContent = line.text;
+                    document.getElementById('currentLineIndex').textContent = lineIndex;
+                    
+                    // Simulate progress
+                    let progress = 0;
+                    const progressInterval = setInterval(() => {
+                        progress += 5;
+                        document.getElementById('lineProgressFill').style.width = progress + '%';
+                        if (progress >= 100) {
+                            clearInterval(progressInterval);
+                            document.getElementById('lineProgressFill').style.width = '0%';
+                        }
+                    }, 100);
+                    
+                    lineIndex++;
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('status').textContent = 'Playback simulation complete';
+                }
+            }, 3000);
+        }
+
+        // Test loading sample lyrics file
+        async function loadSampleLyrics() {
+            try {
+                const response = await fetch('sample-song.lrc');
+                const content = await response.text();
+                console.log('Sample lyrics content:', content);
+                
+                // Parse the LRC content
+                const lines = content.split('\n');
+                const parsedLyrics = [];
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    if (!trimmedLine) continue;
+                    
+                    const timestampMatch = trimmedLine.match(/\[(\d{2}):(\d{2})[.:](\d{2})\]/);
+                    if (timestampMatch) {
+                        const minutes = parseInt(timestampMatch[1]);
+                        const seconds = parseInt(timestampMatch[2]);
+                        const centiseconds = parseInt(timestampMatch[3]);
+                        
+                        const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
+                        const text = trimmedLine.replace(/\[.*?\]/g, '').trim();
+                        
+                        if (text) {
+                            parsedLyrics.push({
+                                time: timeInSeconds,
+                                text: text
+                            });
+                        }
+                    }
+                }
+                
+                console.log('Parsed sample lyrics:', parsedLyrics);
+                
+                if (parsedLyrics.length > 0) {
+                    document.getElementById('status').textContent = `Loaded ${parsedLyrics.length} lines from sample-song.lrc`;
+                    document.getElementById('lyricsCount').textContent = parsedLyrics.length;
+                    document.getElementById('currentLineText').textContent = parsedLyrics[0].text;
+                    document.getElementById('currentLineTextDebug').textContent = parsedLyrics[0].text;
+                    currentLineIndex = 0;
+                    document.getElementById('currentLineIndex').textContent = currentLineIndex;
+                } else {
+                    document.getElementById('status').textContent = 'No lyrics found in sample file';
+                }
+            } catch (error) {
+                console.error('Error loading sample lyrics:', error);
+                document.getElementById('status').textContent = 'Error loading sample lyrics: ' + error.message;
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('status').textContent = 'Ready for testing';
+            
+            // Auto-load sample lyrics after a short delay
+            setTimeout(() => {
+                loadSampleLyrics();
+            }, 1000);
+        });
+    </script>
+</body>
+</html> 

@@ -44,6 +44,34 @@ class LyricsPlayer {
         this.totalTimeSpan = document.getElementById('totalTime');
         this.progressFill = document.getElementById('progressFill');
         
+        // Video-like player elements
+        this.currentLineDisplay = document.getElementById('currentLineDisplay');
+        this.currentLineText = document.getElementById('currentLineText');
+        this.lineProgressFill = document.getElementById('lineProgressFill');
+        this.playPauseBtn = document.getElementById('playPauseBtn');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
+        this.videoProgressFill = document.getElementById('videoProgressFill');
+        this.videoProgressHandle = document.getElementById('videoProgressHandle');
+        this.videoCurrentTime = document.getElementById('videoCurrentTime');
+        this.videoTotalTime = document.getElementById('videoTotalTime');
+        this.videoPlayerContainer = document.querySelector('.video-player-container');
+        this.videoProgressBar = document.querySelector('.video-progress-bar');
+        
+        // Debug: Check if elements are found
+        console.log('Element initialization check:', {
+            currentLineDisplay: !!this.currentLineDisplay,
+            currentLineText: !!this.currentLineText,
+            lineProgressFill: !!this.lineProgressFill,
+            playPauseBtn: !!this.playPauseBtn,
+            fullscreenBtn: !!this.fullscreenBtn,
+            videoProgressFill: !!this.videoProgressFill,
+            videoProgressHandle: !!this.videoProgressHandle,
+            videoCurrentTime: !!this.videoCurrentTime,
+            videoTotalTime: !!this.videoTotalTime,
+            videoPlayerContainer: !!this.videoPlayerContainer,
+            videoProgressBar: !!this.videoProgressBar
+        });
+        
         // Lyrics elements
         this.lyricsContent = document.getElementById('lyricsContent');
         this.toggleAutoScrollBtn = document.getElementById('toggleAutoScroll');
@@ -88,6 +116,13 @@ class LyricsPlayer {
         this.audioPlayer.addEventListener('timeupdate', () => this.updateProgress());
         this.audioPlayer.addEventListener('loadedmetadata', () => this.updateTrackInfo());
         this.audioPlayer.addEventListener('ended', () => this.handlePlaybackEnd());
+        this.audioPlayer.addEventListener('play', () => this.handlePlayStart());
+        
+        // Video-like player control events
+        this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
+        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        this.videoProgressBar.addEventListener('click', (e) => this.seekToPosition(e));
+        this.videoProgressHandle.addEventListener('mousedown', (e) => this.startDragging(e));
         
         // Lyrics control events
         this.toggleAutoScrollBtn.addEventListener('click', () => this.toggleAutoScroll());
@@ -117,6 +152,10 @@ class LyricsPlayer {
         
         // Lyrics textarea events
         this.lyricsTextarea.addEventListener('input', () => this.processLyricsInput());
+        
+        // Global mouse events for dragging
+        document.addEventListener('mousemove', (e) => this.handleDragging(e));
+        document.addEventListener('mouseup', () => this.stopDragging());
     }
 
     switchTab(tabName) {
@@ -203,6 +242,8 @@ class LyricsPlayer {
     }
 
     loadLyricsFile(file) {
+        console.log('Loading lyrics file:', file.name);
+        
         if (!this.isLyricsFile(file)) {
             this.showError('Please select a valid .lrc file');
             return;
@@ -214,7 +255,13 @@ class LyricsPlayer {
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
+                console.log('Parsing lyrics content...');
                 this.lyrics = this.parseLRC(e.target.result);
+                console.log('Parsed lyrics:', this.lyrics.length, 'lines');
+                
+                // Ensure elements are properly initialized before displaying
+                this.ensureElementsInitialized();
+                
                 this.displayLyrics();
                 
                 // Calculate word timings if word timing is enabled
@@ -225,6 +272,7 @@ class LyricsPlayer {
                 this.saveToStorage();
                 this.checkFilesLoaded();
             } catch (error) {
+                console.error('Error parsing lyrics:', error);
                 this.showError('Error parsing lyrics file: ' + error.message);
             }
         };
@@ -269,80 +317,187 @@ class LyricsPlayer {
     }
 
     displayLyrics() {
+        console.log('displayLyrics called, lyrics count:', this.lyrics.length);
+        
         this.lyricsContent.innerHTML = '';
         
         if (this.lyrics.length === 0) {
-            this.lyricsContent.innerHTML = '<div class="lyrics-placeholder"><p>No lyrics loaded</p></div>';
+            console.log('No lyrics to display');
+            this.lyricsContent.innerHTML = '<div class="lyrics-placeholder"><p>Load a .lrc file to see synchronized lyrics</p></div>';
+            this.currentLineText.textContent = 'Load audio and lyrics to start';
             return;
         }
         
-        this.lyrics.forEach((lyric, index) => {
+        console.log('Displaying lyrics lines...');
+        this.lyrics.forEach((line, index) => {
             const lineElement = document.createElement('div');
             lineElement.className = 'lyrics-line';
             lineElement.dataset.index = index;
-            lineElement.dataset.time = lyric.time;
             
-            if (this.wordTiming) {
-                // Split into words for word-by-word highlighting
-                const words = lyric.text.split(' ');
-                words.forEach((word, wordIndex) => {
-                    const wordElement = document.createElement('span');
-                    wordElement.className = 'word';
-                    wordElement.textContent = word + ' ';
-                    wordElement.dataset.lineIndex = index;
-                    wordElement.dataset.wordIndex = wordIndex;
-                    lineElement.appendChild(wordElement);
-                });
+            if (this.wordTiming && line.words) {
+                lineElement.innerHTML = line.words.map(word => 
+                    `<span class="word" data-time="${word.time}">${word.text}</span>`
+                ).join(' ');
             } else {
-                lineElement.textContent = lyric.text;
+                lineElement.textContent = line.text;
             }
             
             this.lyricsContent.appendChild(lineElement);
         });
         
-        // Initialize word display if word timing is enabled
-        if (this.wordTiming) {
-            this.updateWordDisplay();
+        // Initialize current line display
+        console.log('Initializing current line display...');
+        this.updateCurrentLineDisplay();
+        
+        // Show timing info if word timing is available
+        if (this.wordTiming && this.lyrics.some(line => line.words)) {
+            this.timingInfo.style.display = 'block';
+            this.updateTimingAnalysis();
+        } else {
+            this.timingInfo.style.display = 'none';
         }
     }
 
     updateProgress() {
-        const currentTime = this.audioPlayer.currentTime;
-        const duration = this.audioPlayer.duration;
-        
-        if (duration) {
+        if (this.audioPlayer && this.audioPlayer.duration) {
+            const currentTime = this.audioPlayer.currentTime;
+            const duration = this.audioPlayer.duration;
             const progress = (currentTime / duration) * 100;
-            this.progressFill.style.width = progress + '%';
+            
+            // Update video progress bar
+            if (this.videoProgressFill) {
+                this.videoProgressFill.style.width = progress + '%';
+            }
+            if (this.videoProgressHandle) {
+                this.videoProgressHandle.style.left = progress + '%';
+            }
+            
+            // Update time displays
+            if (this.videoCurrentTime) {
+                this.videoCurrentTime.textContent = this.formatTime(currentTime);
+            }
+            if (this.currentTimeSpan) {
+                this.currentTimeSpan.textContent = this.formatTime(currentTime);
+            }
+            
+            // Update lyrics sync
+            this.updateLyricsSync(currentTime);
         }
-        
-        this.currentTimeSpan.textContent = this.formatTime(currentTime);
-        this.updateLyricsSync(currentTime);
-        this.updateWordTiming(currentTime);
     }
 
     updateTrackInfo() {
-        const duration = this.audioPlayer.duration;
-        this.totalTimeSpan.textContent = this.formatTime(duration);
-        this.trackDuration.textContent = `${this.formatTime(0)} / ${this.formatTime(duration)}`;
+        if (this.audioPlayer && this.audioPlayer.duration) {
+            const duration = this.audioPlayer.duration;
+            if (this.videoTotalTime) {
+                this.videoTotalTime.textContent = this.formatTime(duration);
+            }
+            if (this.totalTimeSpan) {
+                this.totalTimeSpan.textContent = this.formatTime(duration);
+            }
+            if (this.trackDuration) {
+                this.trackDuration.textContent = `${this.formatTime(0)} / ${this.formatTime(duration)}`;
+            }
+        }
     }
 
     updateLyricsSync(currentTime) {
-        let activeIndex = -1;
+        let newLineIndex = -1;
         
-        // Find the current line
+        // Find the current line based on time
         for (let i = 0; i < this.lyrics.length; i++) {
-            if (currentTime >= this.lyrics[i].time) {
-                activeIndex = i;
-            } else {
+            const line = this.lyrics[i];
+            const nextLine = this.lyrics[i + 1];
+            
+            if (currentTime >= line.time && (!nextLine || currentTime < nextLine.time)) {
+                newLineIndex = i;
                 break;
             }
         }
         
-        // Update active line
-        if (activeIndex !== this.currentLineIndex) {
-            this.currentLineIndex = activeIndex;
+        // If no line is found but we have lyrics and audio is playing, show the first line
+        if (newLineIndex === -1 && this.lyrics.length > 0 && currentTime > 0) {
+            // Find the next line that should appear
+            for (let i = 0; i < this.lyrics.length; i++) {
+                if (currentTime < this.lyrics[i].time) {
+                    newLineIndex = Math.max(0, i - 1); // Show the previous line or first line
+                    break;
+                }
+            }
+            // If we're past all lines, show the last line
+            if (newLineIndex === -1) {
+                newLineIndex = this.lyrics.length - 1;
+            }
+        }
+        
+        // Update current line index
+        if (newLineIndex !== this.currentLineIndex) {
+            this.currentLineIndex = newLineIndex;
             this.updateLyricsDisplay();
-            this.updateTimingAnalysis();
+            this.updateCurrentLineDisplay();
+        }
+        
+        // Update line progress if we have a current line
+        if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
+            const currentLine = this.lyrics[this.currentLineIndex];
+            const nextLine = this.lyrics[this.currentLineIndex + 1];
+            
+            if (nextLine && this.lineProgressFill) {
+                const lineDuration = nextLine.time - currentLine.time;
+                const lineProgress = (currentTime - currentLine.time) / lineDuration;
+                this.lineProgressFill.style.width = Math.max(0, Math.min(100, lineProgress * 100)) + '%';
+            } else if (this.lineProgressFill) {
+                // Last line - show full progress
+                this.lineProgressFill.style.width = '100%';
+            }
+        }
+        
+        // Update word timing if enabled
+        if (this.wordTiming) {
+            this.updateWordTiming(currentTime);
+        }
+    }
+
+    updateCurrentLineDisplay() {
+        console.log('updateCurrentLineDisplay called:', {
+            currentLineIndex: this.currentLineIndex,
+            lyricsLength: this.lyrics.length,
+            hasLyrics: this.lyrics.length > 0,
+            currentLineText: !!this.currentLineText,
+            lineProgressFill: !!this.lineProgressFill
+        });
+        
+        if (!this.currentLineText) {
+            console.error('currentLineText element not found!');
+            return;
+        }
+        
+        if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
+            const currentLine = this.lyrics[this.currentLineIndex];
+            console.log('Setting current line text:', currentLine.text);
+            this.currentLineText.textContent = currentLine.text;
+            
+            // Add animation class for smooth transition
+            if (this.currentLineDisplay) {
+                this.currentLineDisplay.classList.add('fade-in');
+                setTimeout(() => {
+                    if (this.currentLineDisplay) {
+                        this.currentLineDisplay.classList.remove('fade-in');
+                    }
+                }, 300);
+            }
+        } else if (this.lyrics.length > 0) {
+            // Show first line if lyrics are loaded but no line is currently active
+            console.log('Showing first line:', this.lyrics[0].text);
+            this.currentLineText.textContent = this.lyrics[0].text;
+            if (this.lineProgressFill) {
+                this.lineProgressFill.style.width = '0%';
+            }
+        } else {
+            console.log('No lyrics loaded, showing default message');
+            this.currentLineText.textContent = 'Load audio and lyrics to start';
+            if (this.lineProgressFill) {
+                this.lineProgressFill.style.width = '0%';
+            }
         }
     }
 
@@ -423,6 +578,16 @@ class LyricsPlayer {
     handlePlaybackEnd() {
         this.currentLineIndex = -1;
         this.updateLyricsDisplay();
+        this.updateCurrentLineDisplay();
+    }
+
+    handlePlayStart() {
+        // When audio starts playing, ensure we show the first line if no line is currently active
+        if (this.lyrics.length > 0 && this.currentLineIndex === -1) {
+            this.currentLineIndex = 0;
+            this.updateLyricsDisplay();
+            this.updateCurrentLineDisplay();
+        }
     }
 
     formatTime(seconds) {
@@ -435,9 +600,23 @@ class LyricsPlayer {
 
     checkFilesLoaded() {
         if (this.audioFile && this.lyricsFile) {
-            this.uploadSection.style.display = 'none';
-            this.playerSection.style.display = 'block';
-            this.fileInfo.style.display = 'block';
+            if (this.uploadSection) this.uploadSection.style.display = 'none';
+            if (this.playerSection) this.playerSection.style.display = 'block';
+            if (this.fileInfo) this.fileInfo.style.display = 'block';
+            
+            // Re-initialize elements after the player section becomes visible
+            setTimeout(() => {
+                this.ensureElementsInitialized();
+                
+                // Initialize the video display with the first line
+                if (this.lyrics.length > 0) {
+                    this.updateCurrentLineDisplay();
+                }
+            }, 100);
+        } else {
+            if (this.uploadSection) this.uploadSection.style.display = 'block';
+            if (this.playerSection) this.playerSection.style.display = 'none';
+            if (this.fileInfo) this.fileInfo.style.display = 'none';
         }
     }
 
@@ -744,47 +923,52 @@ class LyricsPlayer {
     }
 
     updateWordTiming(currentTime) {
-        if (!this.wordTiming || this.wordTimings.length === 0) return;
-        
-        let newWordIndex = -1;
-        
-        // Find the current word
-        for (let i = 0; i < this.wordTimings.length; i++) {
-            if (currentTime >= this.wordTimings[i].startTime && currentTime < this.wordTimings[i].endTime) {
-                newWordIndex = i;
-                break;
+        if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
+            const currentLine = this.lyrics[this.currentLineIndex];
+            
+            if (currentLine.words) {
+                let newWordIndex = -1;
+                
+                for (let i = 0; i < currentLine.words.length; i++) {
+                    const word = currentLine.words[i];
+                    const nextWord = currentLine.words[i + 1];
+                    
+                    if (currentTime >= word.time && (!nextWord || currentTime < nextWord.time)) {
+                        newWordIndex = i;
+                        break;
+                    }
+                }
+                
+                if (newWordIndex !== this.currentWordIndex) {
+                    this.currentWordIndex = newWordIndex;
+                    this.updateWordDisplay();
+                }
             }
-        }
-        
-        // Update word index if changed
-        if (newWordIndex !== this.currentWordIndex) {
-            this.currentWordIndex = newWordIndex;
-            this.updateWordDisplay();
         }
     }
 
     updateWordDisplay() {
-        if (!this.wordTiming) return;
+        const wordElements = this.lyricsContent.querySelectorAll('.word');
         
-        const lines = this.lyricsContent.querySelectorAll('.lyrics-line');
-        
-        lines.forEach((line, lineIndex) => {
-            const words = line.querySelectorAll('.word');
-            words.forEach((word, wordIndex) => {
-                word.classList.remove('current-word', 'past-word', 'future-word');
+        wordElements.forEach((wordElement, index) => {
+            wordElement.classList.remove('current-word', 'past-word', 'future-word');
+            
+            if (this.currentLineIndex >= 0 && this.currentLineIndex < this.lyrics.length) {
+                const currentLine = this.lyrics[this.currentLineIndex];
                 
-                if (this.currentWordIndex >= 0) {
-                    const currentWord = this.wordTimings[this.currentWordIndex];
-                    if (currentWord.lineIndex === lineIndex && currentWord.wordIndex === wordIndex) {
-                        word.classList.add('current-word');
-                    } else if (currentWord.lineIndex > lineIndex || 
-                             (currentWord.lineIndex === lineIndex && currentWord.wordIndex > wordIndex)) {
-                        word.classList.add('past-word');
+                if (currentLine.words) {
+                    const wordTime = parseFloat(wordElement.dataset.time);
+                    const currentTime = this.audioPlayer.currentTime;
+                    
+                    if (Math.abs(wordTime - currentTime) < 0.1) {
+                        wordElement.classList.add('current-word');
+                    } else if (wordTime < currentTime) {
+                        wordElement.classList.add('past-word');
                     } else {
-                        word.classList.add('future-word');
+                        wordElement.classList.add('future-word');
                     }
                 }
-            });
+            }
         });
     }
 
@@ -793,20 +977,124 @@ class LyricsPlayer {
             const currentLine = this.lyrics[this.currentLineIndex];
             const nextLine = this.lyrics[this.currentLineIndex + 1];
             
-            const lineStartTime = currentLine.time;
-            const lineEndTime = nextLine ? nextLine.time : lineStartTime + 3;
-            const lineDuration = lineEndTime - lineStartTime;
-            
-            const wordCount = currentLine.text.split(' ').length;
-            const wordsPerSecond = wordCount / lineDuration;
-            
-            this.lineDuration.textContent = this.formatTime(lineDuration);
-            this.wordsPerSecond.textContent = wordsPerSecond.toFixed(1);
-            
-            this.timingInfo.style.display = 'block';
-        } else {
-            this.timingInfo.style.display = 'none';
+            if (nextLine) {
+                const lineDuration = nextLine.time - currentLine.time;
+                this.lineDuration.textContent = this.formatTime(lineDuration);
+                
+                if (currentLine.words && currentLine.words.length > 0) {
+                    const wordsPerSecond = currentLine.words.length / lineDuration;
+                    this.wordsPerSecond.textContent = wordsPerSecond.toFixed(1);
+                } else {
+                    this.wordsPerSecond.textContent = '--';
+                }
+            } else {
+                this.lineDuration.textContent = '--';
+                this.wordsPerSecond.textContent = '--';
+            }
         }
+    }
+
+    togglePlayPause() {
+        if (!this.audioPlayer) {
+            console.error('Audio player not found');
+            return;
+        }
+        
+        if (this.audioPlayer.paused) {
+            this.audioPlayer.play();
+            if (this.playPauseBtn) {
+                this.playPauseBtn.querySelector('.control-icon').textContent = '⏸️';
+            }
+        } else {
+            this.audioPlayer.pause();
+            if (this.playPauseBtn) {
+                this.playPauseBtn.querySelector('.control-icon').textContent = '▶️';
+            }
+        }
+    }
+
+    toggleFullscreen() {
+        if (!this.videoPlayerContainer) {
+            console.error('Video player container not found');
+            return;
+        }
+        
+        if (!document.fullscreenElement) {
+            this.videoPlayerContainer.requestFullscreen().catch(err => {
+                console.log('Error attempting to enable fullscreen:', err);
+            });
+            this.videoPlayerContainer.classList.add('fullscreen');
+        } else {
+            document.exitFullscreen();
+            this.videoPlayerContainer.classList.remove('fullscreen');
+        }
+    }
+
+    seekToPosition(event) {
+        if (!this.videoProgressBar || !this.audioPlayer) {
+            console.error('Video progress bar or audio player not found');
+            return;
+        }
+        
+        const rect = this.videoProgressBar.getBoundingClientRect();
+        const clickX = event.clientX - rect.left;
+        const progress = (clickX / rect.width) * 100;
+        const newTime = (progress / 100) * this.audioPlayer.duration;
+        
+        this.audioPlayer.currentTime = newTime;
+    }
+
+    startDragging(event) {
+        event.preventDefault();
+        this.isDragging = true;
+        this.videoProgressHandle.style.cursor = 'grabbing';
+    }
+
+    handleDragging(event) {
+        if (this.isDragging) {
+            const rect = this.videoProgressBar.getBoundingClientRect();
+            let clickX = event.clientX - rect.left;
+            clickX = Math.max(0, Math.min(clickX, rect.width));
+            
+            const progress = (clickX / rect.width) * 100;
+            const newTime = (progress / 100) * this.audioPlayer.duration;
+            
+            this.audioPlayer.currentTime = newTime;
+        }
+    }
+
+    stopDragging() {
+        this.isDragging = false;
+        this.videoProgressHandle.style.cursor = 'grab';
+    }
+
+    ensureElementsInitialized() {
+        // Re-get all video player elements to ensure they're available
+        this.currentLineDisplay = document.getElementById('currentLineDisplay');
+        this.currentLineText = document.getElementById('currentLineText');
+        this.lineProgressFill = document.getElementById('lineProgressFill');
+        this.playPauseBtn = document.getElementById('playPauseBtn');
+        this.fullscreenBtn = document.getElementById('fullscreenBtn');
+        this.videoProgressFill = document.getElementById('videoProgressFill');
+        this.videoProgressHandle = document.getElementById('videoProgressHandle');
+        this.videoCurrentTime = document.getElementById('videoCurrentTime');
+        this.videoTotalTime = document.getElementById('videoTotalTime');
+        this.videoPlayerContainer = document.querySelector('.video-player-container');
+        this.videoProgressBar = document.querySelector('.video-progress-bar');
+        
+        console.log('Elements re-initialized:', {
+            currentLineDisplay: !!this.currentLineDisplay,
+            currentLineText: !!this.currentLineText,
+            lineProgressFill: !!this.lineProgressFill,
+            playPauseBtn: !!this.playPauseBtn,
+            fullscreenBtn: !!this.fullscreenBtn,
+            videoProgressFill: !!this.videoProgressFill,
+            videoProgressHandle: !!this.videoProgressHandle,
+            videoCurrentTime: !!this.videoCurrentTime,
+            videoTotalTime: !!this.videoTotalTime,
+            videoPlayerContainer: !!this.videoPlayerContainer,
+            videoProgressBar: !!this.videoProgressBar
+        });
     }
 }
 
